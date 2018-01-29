@@ -11,8 +11,6 @@ import UIKit
 class ViewController: UIViewController {
 
     @IBOutlet weak var calculateLabel: UILabel!
-
-    var currentTotal : Int = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,8 +23,7 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-    
-    @IBAction func number1(_ sender: UIButton) {
+    @IBAction func numberPressed(_ sender: UIButton) {
         self.calculateLabel.text = self.calculateLabel.text! + String(sender.tag)
     }
     
@@ -39,7 +36,11 @@ class ViewController: UIViewController {
         
         switch sender.tag {
         case 10 : //equals
-            let newLabel : String = String(equals(self.calculateLabel.text!))
+            let result = equals(self.calculateLabel.text!)
+            var newLabel : String = String(result)
+            if !isDecimal(result) { //if result is a int
+                newLabel = String(Int(result))
+            }
             self.calculateLabel.text = newLabel
         case 11: //plus
             opString = " + "
@@ -57,20 +58,29 @@ class ViewController: UIViewController {
             opString = " count "
         case 18: //fact
             var arr : [String] = self.calculateLabel.text!.split(separator: " ").map({ substr in String(substr) })
-            var num = Int(arr[0])! - 1
-            var ans = Int(arr[0])!
+            var num = Double(arr[0])! - 1
+            var ans = Double(arr[0])!
+            
+            if isDecimal(num) {
+                num = floor(num)
+                ans = floor(ans)
+            }
+            
             while num > 0 {
                 ans = ans * num
                 num = num - 1
             }
-            self.calculateLabel.text = String(ans)
+            self.calculateLabel.text = String(Int(ans))
+        case 19: //decimal point
+            opString = "."
         default:
             opString = " "
         }
         self.calculateLabel.text = self.calculateLabel.text! + opString
     }
     
-    func equals( _ args: String) -> Int {
+    //takes current state of calculateLabel and returns result in Double
+    func equals( _ args: String) -> Double {
         var arr : [String] = args.split(separator: " ").map({ substr in String(substr) })
         
         if arr[1] == "count" {
@@ -80,14 +90,14 @@ class ViewController: UIViewController {
                     count += 1
                 }
             }
-            return count
+            return Double(count)
         }
         else if arr[1] == "avg" {
-            var count : Int = 0
-            var avg : Int = 0
+            var count : Double = 0
+            var avg : Double = 0
             for n in arr {
                 if n != "avg" {
-                    avg += Int(n)!
+                    avg += Double(n)!
                     count += 1
                     print("avg : \(avg) count: \(count))")
                 }
@@ -96,8 +106,9 @@ class ViewController: UIViewController {
         }
         else if arr.count == 3 {
             let op = arr[1]
-            let firstNum = Int(arr[0])
-            let secondNum = Int(arr[2])
+            let firstNum = Double(arr[0])
+            let secondNum = Double(arr[2])
+            
             switch op {
             case "-":
                 return firstNum! - secondNum!
@@ -106,8 +117,8 @@ class ViewController: UIViewController {
             case "/":
                 return firstNum! / secondNum!
             case "%":
-                return firstNum! % secondNum!
-            case "*":
+                return firstNum!.truncatingRemainder(dividingBy: secondNum!)
+            case "x":
                 return firstNum! * secondNum!
             default:
                 print("not an operation")
@@ -117,7 +128,13 @@ class ViewController: UIViewController {
         return 0
     }
     
-    
+    //helper function to check if a double is an integer
+    func isDecimal(_ n: Double) -> Bool {
+        if floor(n) == n { //if result is a int
+            return false
+        }
+        return true
+    }
 }
 
 
